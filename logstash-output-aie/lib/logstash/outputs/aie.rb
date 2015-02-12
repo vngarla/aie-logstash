@@ -22,7 +22,7 @@ class LogStash::Outputs::Aie < LogStash::Outputs::Base
     # Note that the docs will not be POSTed until buffer_size 
     # has been met
     config :buffer_size, :validate => :number, :default => 100 
-	
+
 	# session config for aie ingestclient
 	config :session_config, :default => {
 		"sessionTimeout" => -1,
@@ -68,16 +68,13 @@ class LogStash::Outputs::Aie < LogStash::Outputs::Base
     def receive(event)
         # output? is some function provided by the base class (which is provided by logstash)
         return unless output?(event) 
-         
+        @doc_list << event_to_doc(event)
         #If we've maxed out the buffer
         if @doc_list.length >= @buffer_size
             response_code = do_post(@doc_list, 1)
-			# clear out the doc_list and add event
-            @doc_list = [ event_to_doc(event) ]
-        else # still more room in the buffer
-            @doc_list << event_to_doc(event)
-        end 
-         
+			# clear out the doc_list
+            @doc_list = [ ]
+        end
     end #def receive(event)
     private
     def event_to_doc(event)
@@ -94,14 +91,12 @@ class LogStash::Outputs::Aie < LogStash::Outputs::Base
 		if id.empty? || id.length
 			id = SecureRandom.uuid()
 		end
-      
         doc = 
         {
             "fields" => fields,
             "id" => id
         }
         return doc
-         
     end #def event_to_doc
      
     private
