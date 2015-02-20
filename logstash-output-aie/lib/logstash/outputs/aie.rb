@@ -71,7 +71,7 @@ class LogStash::Outputs::Aie < LogStash::Outputs::Base
         @doc_list << event_to_doc(event)
         #If we've maxed out the buffer
         if @doc_list.length >= @buffer_size
-            response_code = do_post(@doc_list, 1)
+            do_post(@doc_list, 1)
 			# clear out the doc_list
             @doc_list = [ ]
         end
@@ -83,7 +83,11 @@ class LogStash::Outputs::Aie < LogStash::Outputs::Base
         # add each key/value to our hash unless value is nil
         hashed_event.each do |field,value| 
 			if value
-				fields[field] = [ value ]
+				if value.kind_of?(Array)
+					fields[field] = value
+				else
+					fields[field] = [ value ]
+				end
 			end
         end
 		# generate a uuid if the document id isn't specified
